@@ -51,21 +51,38 @@ let quizQuestions = [
     }
 ];
 
-
 let welcomePage = document.getElementById("welcome-page");
 let startBtn = document.getElementById("start-quiz");
 let questionsCard = document.getElementById("questions");
 let nextBtn = document.createElement("button");
+let startOverBtn = document.createElement("button");
+let clockTimer = document.createElement("p");
 let currentQuestion = 0;
+let timer = 90;
+let timeInterval;
 
-function hideWelcomePage() {
-    if (welcomePage) {
-        welcomePage.remove();
+function showWelcomePage() {
+    questionsCard.innerHTML = "";
+    welcomePage.setAttribute("style", "display:block");
+    currentQuestion = 0;
+}
+
+function selectAnswer(answer, options) {
+
+    if (answer != options) {
+        timer -= 5;
+        currentQuestion++;
         showQuestion();
     } else {
-        welcomePage
+        currentQuestion++;
+        showQuestion();
     }
-};
+    if (timer <= 0) {
+        clearInterval(timeInterval);
+        showWelcomePage();
+        clockTimer.textContent = "";
+    }
+}
 
 function showQuestion() {
 
@@ -74,13 +91,14 @@ function showQuestion() {
     if (currentQuestion < quizQuestions.length) {
         let nbaQuestion = quizQuestions[currentQuestion];
         let options = nbaQuestion.options;
+        let answer = nbaQuestion.answer;
         let questions = document.createElement("p");
-        let answers = document.createElement("ul");
 
         questions.textContent = nbaQuestion.question;
         questionsCard.appendChild(questions);
 
         options.forEach(function (difOptions) {
+            let answers = document.createElement("ul");
             let possibleAnswers = document.createElement("li");
             let answerBtn = document.createElement("button");
 
@@ -88,17 +106,30 @@ function showQuestion() {
             possibleAnswers.appendChild(answerBtn);
             answers.appendChild(possibleAnswers);
             questionsCard.appendChild(answers);
-
+            answerBtn.addEventListener("click", function () { selectAnswer(answer, difOptions) });
         })
-
-        currentQuestion++;
-        nextBtn.textContent = "Next Question";
-        questionsCard.appendChild(nextBtn);
-    }else{
-        questionsCard.textContent ="You have completed this quiz!";
+    } else {
+        questionsCard.textContent = "You have completed this quiz!";
+        startOverBtn.textContent = "Start Over";
+        questionsCard.appendChild(startOverBtn);
+        clearInterval(timeInterval);
+        timer=90;
     }
+}
+function startQuiz() {
+    timeInterval = setInterval(function () {
+        timer--;
+        clockTimer.textContent = timer + " sec left";
+        questionsCard.appendChild(clockTimer);
+    }, 1000);
 
+    showQuestion();
 }
 
-nextBtn.addEventListener("click", showQuestion);
+function hideWelcomePage() {
+    welcomePage.setAttribute("style", "display: none");
+    startQuiz();
+};
+
 startBtn.addEventListener("click", hideWelcomePage);
+startOverBtn.addEventListener("click", showWelcomePage);
